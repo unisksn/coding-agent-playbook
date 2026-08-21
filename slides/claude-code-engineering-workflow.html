@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude Code Engineering Workflow — Plan・Implement・Review の最適化</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,.08);
+      --panel2: rgba(255,255,255,.13);
+      --text: #f7f8ff;
+      --muted: #b8c1da;
+      --accent: #7dd3fc;
+      --accent2: #c084fc;
+      --good: #86efac;
+      --warn: #facc15;
+      --danger: #fda4af;
+      --line: rgba(255,255,255,.18);
+      --shadow: 0 24px 80px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Sans", sans-serif;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .deck {
+      width: 100%;
+      min-height: 100vh;
+      padding: 16px 0 44px;
+      background:
+        radial-gradient(circle at 15% 8%, rgba(125,211,252,.25), transparent 28%),
+        radial-gradient(circle at 86% 10%, rgba(192,132,252,.22), transparent 32%),
+        linear-gradient(135deg, #0b1020 0%, #151a35 56%, #0b1020 100%);
+    }
+    .slide {
+      width: min(1120px, calc(100% - 24px));
+      margin: 0 auto 18px;
+      padding: 34px 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: rgba(11,16,32,.74);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .slide.center {
+      min-height: 70vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+    h1 { font-size: clamp(38px, 10.5vw, 78px); line-height: 1.04; margin: 0; letter-spacing: -.045em; }
+    h2 { font-size: clamp(30px, 7.5vw, 54px); line-height: 1.12; margin: 0 0 22px; letter-spacing: -.035em; }
+    h3 { font-size: clamp(20px, 5.2vw, 29px); margin: 0 0 12px; }
+    p, li { font-size: clamp(17px, 4.4vw, 23px); line-height: 1.55; }
+    p { margin: 0; }
+    ul { margin: 0; padding-left: 1.2em; }
+    strong { color: #fff; }
+    .lead { color: var(--muted); font-size: clamp(19px, 5vw, 28px); margin-top: 24px; }
+    .mini { color: var(--muted); font-size: clamp(14px, 3.6vw, 18px); line-height: 1.55; }
+    .eyebrow { color: var(--accent); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: 14px; margin-bottom: 16px; }
+    .accent { color: var(--accent); }
+    .purple { color: var(--accent2); }
+    .green { color: var(--good); }
+    .yellow { color: var(--warn); }
+    .danger { color: var(--danger); }
+    .quote { font-size: clamp(28px, 6.9vw, 48px); line-height: 1.24; font-weight: 900; letter-spacing: -.035em; }
+    .stamp { display: inline-block; margin-top: 30px; padding: 14px 20px; border-radius: 18px; background: rgba(134,239,172,.12); border: 1px solid rgba(134,239,172,.35); color: var(--good); font-weight: 900; font-size: clamp(18px, 4.6vw, 26px); }
+    .grid { display: grid; gap: 18px; }
+    .cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,.25); }
+    .pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .pill { display: inline-flex; align-items: center; padding: 8px 13px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); font-weight: 800; font-size: clamp(13px, 3.4vw, 16px); }
+    .flow { display: flex; align-items: stretch; justify-content: space-between; gap: 12px; margin-top: 30px; }
+    .node { flex: 1; min-height: 126px; display: grid; place-items: center; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
+    .node .label { font-size: clamp(22px, 5.6vw, 32px); font-weight: 900; }
+    .node .sub { color: var(--muted); font-size: clamp(15px, 3.7vw, 20px); margin-top: 7px; line-height: 1.4; }
+    .arrow { color: var(--accent); font-size: clamp(32px, 8vw, 52px); font-weight: 900; display: grid; place-items: center; }
+    .split { display: grid; grid-template-columns: .95fr 1.05fr; gap: 22px; align-items: center; }
+    .big-number { font-size: clamp(56px, 16vw, 104px); line-height: .95; font-weight: 950; letter-spacing: -.06em; color: var(--accent); }
+    .matrix { display: grid; grid-template-columns: 1.05fr .9fr .9fr 1.15fr; gap: 1px; overflow: hidden; border-radius: 20px; border: 1px solid var(--line); background: var(--line); box-shadow: 0 16px 40px rgba(0,0,0,.25); }
+    .matrix > div { background: rgba(14,20,43,.94); padding: 15px 16px; font-size: clamp(14px, 3.7vw, 19px); line-height: 1.35; }
+    .matrix .head { background: rgba(125,211,252,.16); color: #fff; font-weight: 900; }
+    .matrix .topic { color: var(--accent); font-weight: 900; }
+    .note { margin-top: 22px; padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(125,211,252,.3); background: rgba(125,211,252,.08); }
+    .resource-card { display: block; text-decoration: none; color: var(--text); transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+    .resource-card:hover { transform: translateY(-2px); border-color: rgba(125,211,252,.55); background: rgba(125,211,252,.10); }
+    .resource-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .resource-card h3 { color: var(--accent); }
+    .resource-card.primary h3 { color: var(--good); }
+    .resource-url { display: block; margin-top: 10px; color: var(--muted); font-size: clamp(12px, 3.2vw, 15px); line-height: 1.35; overflow-wrap: anywhere; }
+    .resource-meta { margin-top: 14px; color: var(--muted); font-size: clamp(13px, 3.4vw, 16px); }
+    @media (max-width: 820px) {
+      .slide { width: calc(100% - 16px); margin-bottom: 12px; padding: 24px 16px; border-radius: 20px; }
+      .slide.center { min-height: 64vh; }
+      .cols-2, .cols-3, .split { grid-template-columns: 1fr; }
+      .flow { flex-direction: column; }
+      .arrow { transform: rotate(90deg); }
+      .matrix { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .matrix > div { min-width: 122px; padding: 12px 10px; }
+      .card { padding: 19px; border-radius: 20px; }
+    }
+    @media print {
+      .deck { background: #0b1020; }
+      .slide { page-break-after: always; min-height: 56.25vw; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section class="slide center">
+      <div>
+        <div class="eyebrow">3 min talk</div>
+        <h1>Claude Code<br><span class="accent">Engineering Workflow</span></h1>
+        <p class="subtitle">Plan・Implement・Review の最適化</p>
+        <p class="lead">model / effort / plan mode / sub agent / clear / compact / review の切り替え</p>
+        <div class="stamp">タスクの性質で使い分けています</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="eyebrow">Core principle</div>
+      <h2>基本方針</h2>
+      <p class="quote">探索は広く隔離する。<br>判断には強いモデルを使う。<br>実装は必要十分なモデルで進める。<br>検証は別コンテキストで行う。</p>
+      <div class="flow">
+        <div class="node"><div class="label green">Explore</div><div class="sub">広い調査<br>sub agentを必要時だけ</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="label purple">Plan</div><div class="sub">設計・判断<br>Opus / opusplan</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="label accent">Implement</div><div class="sub">小さく実装<br>Sonnet high</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="label yellow">Review</div><div class="sub">別セッション<br>Opus or Sonnet</div></div>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Model / effort policy</div>
+      <h2>モデルは「強い順」ではなく「役割」で選ぶ</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="green">下限は Sonnet</h3>
+          <p>Haiku は使わず、日常の調査・実装・軽いレビューは <strong>Sonnet</strong> を基本にする。</p>
+          <div class="pills"><span class="pill">Sonnet medium</span><span class="pill">Sonnet high</span></div>
+        </div>
+        <div class="card">
+          <h3 class="purple">判断は Opus</h3>
+          <p>設計、ルール検証、複数repo横断、難しいレビューでは <strong>Opus high〜xhigh</strong> を使う。</p>
+          <div class="pills"><span class="pill">Opus high</span><span class="pill">Opus xhigh</span></div>
+        </div>
+        <div class="card">
+          <h3 class="yellow">Opus 5 の操作ミス対策</h3>
+          <p>Opus 5 で操作ミスが増える場面では、利用可能なら <strong>effortをxhigh以上</strong> に上げる。</p>
+          <div class="pills"><span class="pill">慎重な操作</span><span class="pill">検証優先</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">安定性重視の切替</h3>
+          <p>安定性を優先したい場面では、社内で利用可能なら <strong>Opus 4.6 / 4.7</strong> も比較対象にする。</p>
+          <div class="pills"><span class="pill">モデル固定</span><span class="pill">フェーズ境界で切替</span></div>
+        </div>
+      </div>
+      <div class="note"><p class="mini">性能が高いモデルは、必要と判断すれば sub agent への委譲を自動で選ぶことがあるため、普段は「必ずsub agentを使え」とは書かず、広い探索や隔離したい調査だけ明示します。</p></div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">High-performance model policy</div>
+      <h2>高性能モデルには「進め方」も任せる</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="purple">細かい手順より成果を渡す</h3>
+          <p>Opus などの高性能モデルには、Plan mode・sub agent・並列調査まで細かく指定しすぎず、まず <strong>目的・制約・完了条件</strong> を明確に渡す。</p>
+          <div class="pills"><span class="pill">Outcome</span><span class="pill">Constraints</span><span class="pill">Done criteria</span></div>
+        </div>
+        <div class="card">
+          <h3 class="green">オーケストレーションを委譲</h3>
+          <p>必要ならモデル自身に、調査、Plan、sub agent、並列化、検証の進め方を選ばせる。人間は成果物とリスクをレビューする。</p>
+          <div class="pills"><span class="pill">必要時Plan</span><span class="pill">必要時Subagent</span><span class="pill">必要時並列化</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">小さい仕事は落とす</h3>
+          <p>一方で、明確で局所的な修正やテスト追加は <strong>Sonnet</strong> で十分。高性能モデルを常用して過剰な推論コストを払わない。</p>
+          <div class="pills"><span class="pill">局所修正</span><span class="pill">小さなPR</span></div>
+        </div>
+        <div class="card">
+          <h3 class="yellow">レビューは独立させる</h3>
+          <p>高性能モデルに任せた作業ほど、計画書やdiffを <strong>別セッション</strong> でレビューする。観点を渡さないレビューも、想定外の指摘を得るために有効。</p>
+          <div class="pills"><span class="pill">fresh context</span><span class="pill">Opus xhigh</span><span class="pill">あえてSonnet</span></div>
+        </div>
+      </div>
+      <div class="note"><p class="mini">例：「この3リポジトリを調査し、共通ルールとrepo固有ルールを整理して。必要ならsub agentを使い、根拠つきで改善案を出して。」のように、手順ではなく達成状態を渡す。</p></div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Example 1</div>
+      <h2>フロントエンドテスト基盤導入</h2>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3 class="green">1. 調査</h3>
+          <p>Vue / Vite / TypeScript / CI / 既存テストを調査。広い探索なら sub agent に分離。</p>
+          <div class="pills"><span class="pill">Sonnet</span><span class="pill">必要時 sub agent</span></div>
+        </div>
+        <div class="card">
+          <h3 class="purple">2. 設計</h3>
+          <p>Vitest、Vue Test Utils、Playwright、配置、命名、CI の責務境界を Plan mode で決める。</p>
+          <div class="pills"><span class="pill">opusplan</span><span class="pill">high〜xhigh</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">3. 実装</h3>
+          <p><strong>TESTING_PLAN.md</strong> に決定事項を残し、fresh context で小さく実装する。</p>
+          <div class="pills"><span class="pill">/clear</span><span class="pill">Sonnet high</span></div>
+        </div>
+      </div>
+      <div class="note"><p class="mini">例：Vitest → Vue Test Utils → Playwright → CI のように、自然なチェックポイントで区切る。複雑な導入では、実装前に <strong>TESTING_PLAN.md</strong> 自体も別セッションの高性能モデルでレビューする。</p></div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Example 2</div>
+      <h2>開発ルール検証</h2>
+      <div class="split">
+        <div class="card">
+          <div class="big-number">判断</div>
+          <p class="lead">ここは実装タスクではなく、ルールの妥当性を評価するタスク。</p>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3 class="yellow">Jira番号をcommit titleに必須化?</h3>
+            <p>git log の可読性、PRとの重複、bodyに置く選択肢、機械検証可能性を比較する。</p>
+          </div>
+          <div class="card">
+            <h3 class="yellow">RSpec let! を禁止?</h3>
+            <p>禁止ではなく「なぜexample前の評価が必要か説明できること」をルール化する。</p>
+          </div>
+        </div>
+      </div>
+      <div class="pills"><span class="pill">Opus high〜xhigh</span><span class="pill">Plan mode</span><span class="pill">Explore 0〜1</span><span class="pill">Hook化は慎重</span></div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Example 3</div>
+      <h2>AI開発プロセスの構築</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="purple">設計は Opus</h3>
+          <p>複数repoの差分、共通ルール、repo固有ルール、AIに強制すべきルールを整理する。</p>
+          <div class="pills"><span class="pill">Opus high〜xhigh</span><span class="pill">Plan mode</span></div>
+        </div>
+        <div class="card">
+          <h3 class="green">調査は分離</h3>
+          <p>repo A / B / C の調査は必要に応じて sub agent に分け、重要事項と根拠だけ戻す。</p>
+          <div class="pills"><span class="pill">根拠つき報告</span><span class="pill">mainで重要箇所を再確認</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">実装は Sonnet</h3>
+          <p>決まった方針を <strong>CLAUDE.md / rules / skills / hooks</strong> に分配して反映する。</p>
+          <div class="pills"><span class="pill">Sonnet high</span><span class="pill">小さなPR</span></div>
+        </div>
+        <div class="card">
+          <h3 class="yellow">全部を常時読み込まない</h3>
+          <p>CLAUDE.md は最小限。重い判断基準は skill、パス依存は rule、機械的制約は hook に置く。</p>
+          <div class="pills"><span class="pill">token節約</span><span class="pill">保守性</span></div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Context control</div>
+      <h2>main context は「量」より「質」</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="accent">/clear</h3>
+          <p>タスク境界で使う。設計済みの <strong>PLAN.md</strong> や <strong>SPEC.md</strong> を残して、fresh context から実装する。</p>
+          <p class="mini">例：テスト基盤の設計後に /clear → Sonnetで実装</p>
+        </div>
+        <div class="card">
+          <h3 class="purple">/compact</h3>
+          <p>同じ流れを継続するときに使う。採用済み設計、変更ファイル、残タスク、検証コマンドだけ残す。</p>
+          <p class="mini">例：debug中にcontextが肥大したが、まだ作業を継続したい</p>
+        </div>
+      </div>
+      <div class="note">
+        <p><strong>私の運用：</strong> context は使用率ではなく <strong>情報密度</strong> で管理する。古い試行錯誤、却下案、関係ないgrep結果、解決済みエラーが残るなら、使用率が低くても質が悪い。</p>
+        <p class="mini" style="margin-top:10px;">compactは容量閾値ではなく、調査完了 → 設計、設計確定 → 実装、実装 → debug のようなフェーズ境界で行う。使用率が高くても、現在の判断に必要な情報だけなら機械的にcompactしない。</p>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Sub agent policy</div>
+      <h2>Sub agent は「要約器」ではなく「調査員」</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="green">使う場面</h3>
+          <p>repo全体の検索、既存パターン調査、影響範囲の洗い出しなど、広く浅い探索を任せる。</p>
+        </div>
+        <div class="card">
+          <h3 class="yellow">戻してほしい情報</h3>
+          <p>結論だけではなく、判断に影響する事項と <strong>根拠ファイル・該当箇所</strong> を返してもらう。</p>
+        </div>
+        <div class="card">
+          <h3 class="accent">Main の役割</h3>
+          <p>sub agent の報告を鵜呑みにせず、重要な前提だけ main が一次情報を再確認する。</p>
+        </div>
+        <div class="card">
+          <h3 class="purple">使わない場面</h3>
+          <p>数ファイルの確認、設計判断に直結するコード読解、局所的な修正は main で直接読む。</p>
+        </div>
+      </div>
+      <div class="note"><p class="mini">判断基準は「context使用率」ではなく、探索過程そのものをmainが知る必要があるか。</p></div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Parallel research</div>
+      <h2>独立した調査は並列 sub agent に分ける</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="green">良い使い方</h3>
+          <p>複数repo、複数領域、複数観点のように、互いに依存しない調査を別々のsub agentへ並列に任せる。</p>
+          <div class="pills"><span class="pill">Repo A</span><span class="pill">Repo B</span><span class="pill">Repo C</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">具体例</h3>
+          <p>開発ルール検証では、各repoの <strong>CLAUDE.md / CI / lint / test / Git運用</strong> を同じ形式で調査させ、mainで横断比較する。</p>
+        </div>
+        <div class="card">
+          <h3 class="purple">返却フォーマット</h3>
+          <p>発見事項、根拠ファイル、repo固有の制約、横断適用できそうなルール、追加確認事項を揃えて返してもらう。</p>
+        </div>
+        <div class="card">
+          <h3 class="yellow">使いすぎない</h3>
+          <p>数ファイルを読むだけ、前の調査結果に次が依存する作業、同じ流れを縦に追う作業は main か逐次調査で十分。</p>
+        </div>
+      </div>
+      <div class="note">
+        <p><strong>判断基準：</strong>ファイル数ではなく、調査を独立した塊に分割できるか。並列化は速いが総tokenは増えるため、mainは統合・比較・意思決定に集中させる。</p>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Review strategy</div>
+      <h2>計画書も実装結果も別セッションでレビュー</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="purple">計画書レビュー</h3>
+          <p>複雑な作業では、実装前に <strong>PLAN.md / SPEC.md</strong> を別セッションの高性能モデルでレビューさせる。</p>
+          <div class="pills"><span class="pill">Opus xhigh</span><span class="pill">前提確認</span></div>
+        </div>
+        <div class="card">
+          <h3 class="purple">実装後レビュー</h3>
+          <p>設計判断、大きな導入、複数ファイル変更の後は、別セッションで <strong>Opus xhigh</strong> に深くレビューさせる。</p>
+          <div class="pills"><span class="pill">fresh session</span><span class="pill">diff中心</span></div>
+        </div>
+        <div class="card">
+          <h3 class="accent">あえて Sonnet レビュー</h3>
+          <p>下位モデルの <strong>Sonnet</strong> に、過剰設計・読みにくさ・単純な見落としを拾わせることもある。</p>
+          <div class="pills"><span class="pill">Sonnet high</span><span class="pill">素朴な視点</span></div>
+        </div>
+        <div class="card">
+          <h3 class="green">観点ありレビュー</h3>
+          <p>「正しさ」「テスト妥当性」「CIコスト」「ルール化しすぎていないか」など、狙って見てほしい観点を渡す。</p>
+        </div>
+        <div class="card">
+          <h3 class="yellow">観点なしレビュー</h3>
+          <p>あえてレビュー観点を渡さず、モデル自身に違和感・リスク・見落としを自由に拾わせる場合も有効。</p>
+        </div>
+      </div>
+      <div class="note"><p class="mini">複雑な作業ほど <strong>Planner / Writer / Reviewer</strong> を分ける。計画書は前提・影響範囲・分割方針を、実装後はdiff・テスト・運用リスクを中心に見る。</p></div>
+    </section>
+
+
+
+    <section class="slide">
+      <div class="eyebrow">Continuous improvement</div>
+      <h2>Harness も公式情報で定期更新する</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3 class="green">固定しない</h3>
+          <p>Claude Code は model / effort / sub agent / compact / skills / hooks の推奨やコスト感が変わるため、Harness は一度作って終わりにしない。</p>
+        </div>
+        <div class="card">
+          <h3 class="accent">見る情報</h3>
+          <p>公式 docs、best practices、model config、subagents、skills、hooks、costs、CHANGELOG を定期的に確認する。</p>
+        </div>
+        <div class="card">
+          <h3 class="purple">更新は差分ベース</h3>
+          <p>最新情報をそのまま反映せず、現在の Harness と公式情報の差分だけを抽出して、変更理由・期待効果・根拠を確認する。</p>
+        </div>
+        <div class="card">
+          <h3 class="yellow">代表タスクで検証</h3>
+          <p>フロントエンドテスト基盤、ルール検証、AI開発プロセス構築の3パターンで、正確性・速度・token効率が改善するかを見る。</p>
+        </div>
+      </div>
+      <div class="note">
+        <p><strong>運用：</strong>公式情報チェック → 影響箇所の抽出 → Harness変更案 → diffレビュー → 代表タスクで検証 → 採用、の順で更新する。</p>
+        <p class="mini" style="margin-top:10px;">原則は安定させる。変えるのは Claude Code 依存の戦術、たとえば model / effort / sub agent の使い方、compact方針、skills / hooks の活用方法。</p>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">Operating standard</div>
+      <h2>私の Claude Code 利用標準</h2>
+      <div class="matrix">
+        <div class="head">タスク</div><div class="head">モデル</div><div class="head">モード</div><div class="head">Context戦略</div>
+        <div class="topic">小さく明確</div><div>Sonnet<br>medium〜high</div><div>Planなし</div><div>そのまま実装</div>
+        <div class="topic">通常の開発</div><div>Sonnet high</div><div>必要ならPlan</div><div>狭く直接読む</div>
+        <div class="topic">設計判断</div><div>Opus high〜xhigh</div><div>Plan mode</div><div>必要時sub agent</div>
+        <div class="topic">大きな導入</div><div>opusplan</div><div>Plan → 実装</div><div>PLAN.md → /clear</div>
+        <div class="topic">複数repo/領域調査</div><div>Sonnet以上</div><div>並列sub agent</div><div>同じ形式で根拠付き報告</div>
+        <div class="topic">計画書レビュー</div><div>Opus xhigh</div><div>別セッション</div><div>実装前に前提を検証</div>
+        <div class="topic">複雑作業後レビュー</div><div>Opus xhigh<br>または Sonnet</div><div>別セッション</div><div>観点あり/なしを使い分け</div>
+      </div>
+      <p class="lead">結論：<strong>モデル選択</strong>よりも、<strong>フェーズごとの知性とcontext配分</strong>を標準化する。</p>
+    </section>
+    
+    <section class="slide">
+      <div class="eyebrow">References / Resources</div>
+      <h2>参考資料・利用プロンプト</h2>
+      <div class="grid cols-2">
+        <a class="card resource-card primary" href="https://github.com/unisksn/coding-agent-playbook/blob/main/prompts/claude-code-harness-audit.md" target="_blank" rel="noopener noreferrer">
+          <h3>Personal Harness 改善プロンプト</h3>
+          <p>この運用方針をもとに、Claude Code の Personal Harness を監査・改善するためのプロンプト。</p>
+          <span class="resource-url">github.com/unisksn/coding-agent-playbook/blob/main/prompts/claude-code-harness-audit.md</span>
+        </a>
+        <a class="card resource-card" href="https://code.claude.com/docs/en/best-practices" target="_blank" rel="noopener noreferrer">
+          <h3>Claude Code Best Practices</h3>
+          <p>Explore → Plan → Implement、Context管理、Subagentによる調査、fresh session など、本資料の中心となる公式ガイド。</p>
+          <span class="resource-url">code.claude.com/docs/en/best-practices</span>
+        </a>
+        <a class="card resource-card" href="https://code.claude.com/docs/en/model-config" target="_blank" rel="noopener noreferrer">
+          <h3>Model Configuration</h3>
+          <p>Claude Code でのモデル選択、モデル設定、effort などを確認するための公式リファレンス。</p>
+          <span class="resource-url">code.claude.com/docs/en/model-config</span>
+        </a>
+        <a class="card resource-card" href="https://code.claude.com/docs/en/sub-agents" target="_blank" rel="noopener noreferrer">
+          <h3>Subagents</h3>
+          <p>独立Contextでの調査・レビュー、Subagent の設定と委譲方法を確認する公式ドキュメント。</p>
+          <span class="resource-url">code.claude.com/docs/en/sub-agents</span>
+        </a>
+        <a class="card resource-card" href="https://code.claude.com/docs/en/costs" target="_blank" rel="noopener noreferrer">
+          <h3>Manage Costs Effectively</h3>
+          <p>Token、Prompt Cache、モデル利用など、Claude Code のコスト効率を考える際の公式資料。</p>
+          <span class="resource-url">code.claude.com/docs/en/costs</span>
+        </a>
+        <a class="card resource-card" href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching" target="_blank" rel="noopener noreferrer">
+          <h3>Prompt Caching</h3>
+          <p>Cache write / read の仕組みと、長い共通Contextを効率よく再利用する仕組みの公式解説。</p>
+          <span class="resource-url">platform.claude.com/docs/en/build-with-claude/prompt-caching</span>
+        </a>
+        <a class="card resource-card" href="https://code.claude.com/docs/en/changelog" target="_blank" rel="noopener noreferrer">
+          <h3>Claude Code Changelog</h3>
+          <p>Harness を固定せず、機能・挙動・推奨の変化を定期確認するための更新履歴。</p>
+          <span class="resource-url">code.claude.com/docs/en/changelog</span>
+        </a>
+      </div>
+      <div class="note">
+        <p><strong>Point-in-time:</strong> Claude Code は変化が速いため、この資料とプロンプトは <strong>2026-08-21 時点</strong> の運用として扱い、定期的に公式情報との差分を確認する。</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
