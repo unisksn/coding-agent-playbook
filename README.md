@@ -24,17 +24,44 @@ Presentation materials for explaining coding-agent workflows and engineering pra
 | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Claude Code Engineering Workflow](https://unisksn.github.io/coding-agent-playbook/slides/claude-code-engineering-workflow.html) | Practical workflow for model selection, planning, implementation, context management, subagents, and independent review. ([source](./slides/claude-code-engineering-workflow.html)) |
 
+## Repository Harness
+
+This repository also applies coding-agent instructions to itself.
+
+The shared repository instructions are defined in [`AGENTS.md`](./AGENTS.md). They currently focus on safely working with a public repository, including preventing secrets, credentials, and non-public information from being committed.
+
+[`CLAUDE.md`](./CLAUDE.md) imports these shared instructions for Claude Code instead of duplicating them.
+
+```text
+AGENTS.md
+    ↑
+CLAUDE.md
+```
+
+The intention is to keep repository-wide rules:
+
+* tool-independent where possible
+* small and explicit
+* focused on preventing concrete failures
+* shared rather than duplicated across coding-agent configurations
+
+Additional rules should be introduced only when there is a clear repository-wide need.
+
 ## Repository Structure
 
 ```text
 coding-agent-playbook/
+├── AGENTS.md
+├── CLAUDE.md
+├── README.md
 ├── prompts/
 │   └── claude-code-harness-audit.md
-├── slides/
-│   └── claude-code-engineering-workflow.html
-└── README.md
+└── slides/
+    └── claude-code-engineering-workflow.html
 ```
 
+* `AGENTS.md` — shared repository instructions for coding agents.
+* `CLAUDE.md` — Claude Code entry point that imports the shared instructions.
 * `prompts/` — prompts intended to be given directly to coding agents.
 * `slides/` — presentation materials, published through GitHub Pages.
 
@@ -49,6 +76,7 @@ The materials in this repository generally favor:
 * separating exploration, planning, implementation, and review when appropriate
 * using independent review for important design and implementation decisions
 * keeping reusable harness instructions small and maintainable
+* sharing tool-independent repository rules instead of duplicating them
 * treating tool-specific recommendations as changeable rather than permanent rules
 
 ## Point-in-Time Guidance
