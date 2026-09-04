@@ -8,6 +8,14 @@ The focus is not on a specific tool, language, or repository, but on practical e
 
 ## Contents
 
+### Articles
+
+Long-form write-ups on engineering practices for working with coding agents.
+
+| Resource                                                                                            | Description                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Rethinking Code Review in the AI Era](./articles/rethinking-code-review-in-the-ai-era.md) | Why splitting a pull request should be decided by dependencies, risk, and verifiability rather than by size, and how to divide review work between humans and AI. Written in Japanese. |
+
 ### Prompts
 
 Reusable prompts for auditing, designing, and improving coding-agent workflows.
@@ -54,6 +62,10 @@ coding-agent-playbook/
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
+├── articles/
+│   ├── images/
+│   │   └── pr-review-throughput-ja.svg
+│   └── rethinking-code-review-in-the-ai-era.md
 ├── prompts/
 │   └── claude-code-harness-audit.md
 └── slides/
@@ -62,6 +74,7 @@ coding-agent-playbook/
 
 * `AGENTS.md` — shared repository instructions for coding agents.
 * `CLAUDE.md` — Claude Code entry point that imports the shared instructions.
+* `articles/` — long-form write-ups on engineering practices, with their images.
 * `prompts/` — prompts intended to be given directly to coding agents.
 * `slides/` — presentation materials, published through GitHub Pages.
 
