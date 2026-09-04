@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="860" viewBox="0 0 1700 860" role="img" aria-labelledby="title desc">
+  <title id="title">小さなPRを直列に処理した場合のスループット低下</title>
+  <desc id="desc">小さなPRを三つ順番に処理する場合は、待ち、文脈理解、修正とマージが三回発生する。一つの目的単位でまとめる場合は、それらの固定費を一回にまとめられることを示す概念図。</desc>
+
+  <defs>
+    <style>
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+        fill: #172b4d;
+      }
+      .title { font-size: 40px; font-weight: 700; }
+      .subtitle { font-size: 20px; fill: #5e6c84; }
+      .lane-title { font-size: 25px; font-weight: 700; }
+      .lane-note { font-size: 19px; fill: #5e6c84; }
+      .phase { font-size: 18px; font-weight: 700; text-anchor: middle; }
+      .phase-small { font-size: 16px; font-weight: 700; text-anchor: middle; }
+      .axis { font-size: 17px; fill: #5e6c84; }
+      .legend { font-size: 17px; fill: #44546f; }
+      .takeaway { font-size: 25px; font-weight: 700; }
+    </style>
+
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#5e6c84"/>
+    </marker>
+  </defs>
+
+  <rect width="1700" height="860" fill="#ffffff"/>
+
+  <text x="100" y="92" class="title">PRを直列化すると、レビューの固定費が繰り返される</text>
+  <text x="100" y="132" class="subtitle">概念図 — 横方向は変更全体が完了するまでの時間（実測値ではない）</text>
+
+  <line x1="450" y1="182" x2="1590" y2="182" stroke="#5e6c84" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="450" y="170" class="axis">開始</text>
+  <text x="1360" y="170" class="axis">変更全体の完了</text>
+
+  <!-- Lane 1 -->
+  <text x="100" y="252" class="lane-title">小さなPRを順番に処理</text>
+  <text x="100" y="282" class="lane-note">価値が完成するのはPR 3のマージ後</text>
+
+  <g transform="translate(450 220)">
+    <rect x="0" y="0" width="92" height="100" rx="6" fill="#dff7fa"/>
+    <text x="46" y="42" class="phase-small"><tspan x="46">PR 1</tspan><tspan x="46" dy="24">実装</tspan></text>
+
+    <rect x="98" y="0" width="92" height="100" rx="6" fill="#fff0b3"/>
+    <text x="144" y="58" class="phase-small">待ち</text>
+
+    <rect x="196" y="0" width="92" height="100" rx="6" fill="#e9f2ff"/>
+    <text x="242" y="48" class="phase-small"><tspan x="242">文脈</tspan><tspan x="242" dy="24">理解</tspan></text>
+
+    <rect x="294" y="0" width="92" height="100" rx="6" fill="#dcfff1"/>
+    <text x="340" y="48" class="phase-small"><tspan x="340">修正</tspan><tspan x="340" dy="24">マージ</tspan></text>
+
+    <rect x="400" y="0" width="92" height="100" rx="6" fill="#dff7fa"/>
+    <text x="446" y="42" class="phase-small"><tspan x="446">PR 2</tspan><tspan x="446" dy="24">実装</tspan></text>
+
+    <rect x="498" y="0" width="92" height="100" rx="6" fill="#fff0b3"/>
+    <text x="544" y="58" class="phase-small">待ち</text>
+
+    <rect x="596" y="0" width="92" height="100" rx="6" fill="#e9f2ff"/>
+    <text x="642" y="48" class="phase-small"><tspan x="642">文脈</tspan><tspan x="642" dy="24">理解</tspan></text>
+
+    <rect x="694" y="0" width="92" height="100" rx="6" fill="#dcfff1"/>
+    <text x="740" y="48" class="phase-small"><tspan x="740">修正</tspan><tspan x="740" dy="24">マージ</tspan></text>
+
+    <rect x="800" y="0" width="92" height="100" rx="6" fill="#dff7fa"/>
+    <text x="846" y="42" class="phase-small"><tspan x="846">PR 3</tspan><tspan x="846" dy="24">実装</tspan></text>
+
+    <rect x="898" y="0" width="92" height="100" rx="6" fill="#fff0b3"/>
+    <text x="944" y="58" class="phase-small">待ち</text>
+
+    <rect x="996" y="0" width="92" height="100" rx="6" fill="#e9f2ff"/>
+    <text x="1042" y="48" class="phase-small"><tspan x="1042">文脈</tspan><tspan x="1042" dy="24">理解</tspan></text>
+
+    <rect x="1094" y="0" width="92" height="100" rx="6" fill="#dcfff1"/>
+    <text x="1140" y="48" class="phase-small"><tspan x="1140">修正</tspan><tspan x="1140" dy="24">マージ</tspan></text>
+  </g>
+
+  <!-- Lane 2 -->
+  <text x="100" y="448" class="lane-title">目的単位でまとめて処理</text>
+  <text x="100" y="478" class="lane-note">判断と統合を一度にまとめる</text>
+
+  <g transform="translate(450 416)">
+    <rect x="0" y="0" width="386" height="100" rx="6" fill="#dff7fa"/>
+    <text x="193" y="42" class="phase"><tspan x="193">変更全体を実装</tspan><tspan x="193" dy="28">論理コミットで整理</tspan></text>
+
+    <rect x="400" y="0" width="190" height="100" rx="6" fill="#e9f2ff"/>
+    <text x="495" y="42" class="phase-small"><tspan x="495">AI・CIで</tspan><tspan x="495" dy="25">事前確認</tspan></text>
+
+    <rect x="596" y="0" width="190" height="100" rx="6" fill="#fff0b3"/>
+    <text x="691" y="42" class="phase-small"><tspan x="691">人間が</tspan><tspan x="691" dy="25">集中レビュー</tspan></text>
+
+    <rect x="792" y="0" width="92" height="100" rx="6" fill="#dcfff1"/>
+    <text x="838" y="48" class="phase-small"><tspan x="838">修正</tspan><tspan x="838" dy="24">マージ</tspan></text>
+
+    <rect x="898" y="0" width="288" height="100" rx="6" fill="#f1f2f4"/>
+    <text x="1042" y="58" class="phase-small" fill="#5e6c84">短縮される時間</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(450 575)">
+    <rect x="0" y="0" width="22" height="22" rx="3" fill="#dff7fa"/>
+    <text x="34" y="18" class="legend">実装</text>
+
+    <rect x="145" y="0" width="22" height="22" rx="3" fill="#fff0b3"/>
+    <text x="179" y="18" class="legend">待ち・人間レビュー</text>
+
+    <rect x="410" y="0" width="22" height="22" rx="3" fill="#e9f2ff"/>
+    <text x="444" y="18" class="legend">文脈理解・機械確認</text>
+
+    <rect x="710" y="0" width="22" height="22" rx="3" fill="#dcfff1"/>
+    <text x="744" y="18" class="legend">修正・マージ</text>
+  </g>
+
+  <!-- Takeaway -->
+  <rect x="100" y="670" width="1500" height="118" rx="12" fill="#f1f2f4"/>
+  <rect x="100" y="670" width="10" height="118" rx="5" fill="#f5cd47"/>
+  <text x="150" y="720" class="takeaway">分割数だけ「待ち・文脈理解・修正・マージ」の固定費を払い、</text>
+  <text x="150" y="758" class="takeaway">変更全体のスループットが下がる。</text>
+</svg>
