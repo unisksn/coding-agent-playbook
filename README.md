@@ -23,6 +23,7 @@ Reusable prompts for auditing, designing, and improving coding-agent workflows.
 | Resource                                                            | Description                                                                                                              |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | [Claude Code Harness Audit](./prompts/claude-code-harness-audit.md) | Audit and improve a personal Claude Code harness for use across multiple repositories, languages, and technology stacks. |
+| [Security, Privacy, Data Integrity, and Performance Review](./prompts/security-privacy-data-performance-review.md) | Review a change for security, privacy, data integrity, and performance before releasing it to production. Written in Japanese. |
 
 ### Slides
 
@@ -67,7 +68,8 @@ coding-agent-playbook/
 │   │   └── pr-review-throughput-ja.svg
 │   └── rethinking-code-review-in-the-ai-era.md
 ├── prompts/
-│   └── claude-code-harness-audit.md
+│   ├── claude-code-harness-audit.md
+│   └── security-privacy-data-performance-review.md
 └── slides/
     └── claude-code-engineering-workflow.html
 ```
