@@ -6,7 +6,8 @@ This is a public repository. Treat every committed file and the entire Git histo
 
 Before committing or pushing changes:
 
-- Review the staged diff for secrets, credentials, and non-public information.
+- Review the staged diff for secrets, credentials, and non-public information. Check the commit message, branch name, and pull request title and body as well.
+- Verify the commit author and committer identity is a public address, not a work email (`git var GIT_AUTHOR_IDENT`).
 - Never commit API keys, access tokens, passwords, private keys, authentication cookies, `.env` values, or other credentials.
 - Never commit confidential company, customer, infrastructure, or internal-only information.
 - Use clearly fake placeholders in examples instead of real credentials or sensitive values.
