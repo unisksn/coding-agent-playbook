@@ -33,6 +33,25 @@ Presentation materials for explaining coding-agent workflows and engineering pra
 | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Claude Code Engineering Workflow](https://unisksn.github.io/coding-agent-playbook/slides/claude-code-engineering-workflow.html) | Practical workflow for model selection, planning, implementation, context management, subagents, and independent review. ([source](./slides/claude-code-engineering-workflow.html)) |
 
+### Skills
+
+Reusable [Agent Skills](https://agentskills.io/) that coding agents load on demand. Each skill is a directory with a `SKILL.md`, and is written to be independent of any particular repository.
+
+| Resource                                                | Description                                                                                                                                                                                        |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Frontend Testing](./skills/frontend-testing/SKILL.md) | Decide which layer (unit, component, E2E) a frontend test belongs to, and avoid duplication, excessive mocking, and brittle selectors. Written in Japanese. |
+
+To use a skill, symlink or copy its directory into the skills location of your agent:
+
+```text
+~/.claude/skills/<name>   # Claude Code, user scope
+~/.agents/skills/<name>   # Codex, user scope
+.claude/skills/<name>     # Claude Code, repository scope
+.agents/skills/<name>     # Codex, repository scope
+```
+
+Symlinking keeps this repository as the single source of truth, so local edits show up as a diff here instead of drifting across copies.
+
 ## Repository Harness
 
 This repository also applies coding-agent instructions to itself.
@@ -62,6 +81,7 @@ Additional rules should be introduced only when there is a clear repository-wide
 coding-agent-playbook/
 ├── AGENTS.md
 ├── CLAUDE.md
+├── LICENSE
 ├── README.md
 ├── articles/
 │   ├── images/
@@ -70,6 +90,9 @@ coding-agent-playbook/
 ├── prompts/
 │   ├── claude-code-harness-audit.md
 │   └── security-privacy-data-performance-review.md
+├── skills/
+│   └── frontend-testing/
+│       └── SKILL.md
 └── slides/
     └── claude-code-engineering-workflow.html
 ```
@@ -78,6 +101,7 @@ coding-agent-playbook/
 * `CLAUDE.md` — Claude Code entry point that imports the shared instructions.
 * `articles/` — long-form write-ups on engineering practices, with their images.
 * `prompts/` — prompts intended to be given directly to coding agents.
+* `skills/` — Agent Skills that agents load on demand, each in its own directory with a `SKILL.md`.
 * `slides/` — presentation materials, published through GitHub Pages.
 
 Additional categories will be introduced only when they are needed.
@@ -101,3 +125,7 @@ Coding agents evolve quickly.
 Model behavior, features, context management, pricing, and recommended workflows can change over time. Tool-specific materials in this repository should therefore be treated as **point-in-time guidance**, not permanent best practices.
 
 When applying them, check the current official documentation for the relevant tool.
+
+## License
+
+[MIT](./LICENSE)
