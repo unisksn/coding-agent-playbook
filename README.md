@@ -24,6 +24,7 @@ Reusable prompts for auditing, designing, and improving coding-agent workflows.
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | [Claude Code Harness Audit](./prompts/claude-code-harness-audit.md) | Audit and improve a personal Claude Code harness for use across multiple repositories, languages, and technology stacks. |
 | [Security, Privacy, Data Integrity, and Performance Review](./prompts/security-privacy-data-performance-review.md) | Review a change for security, privacy, data integrity, and performance before releasing it to production. Written in Japanese. |
+| [Session Name Setup](./prompts/session-name-setup.md) | Install a user-scope `session-name` skill and a `UserPromptSubmit` hook that name Claude Code sessions as `{repo}-{PR or ticket}-{description}`, so they are easy to find in `/resume`. Written in Japanese. |
 
 ### Slides
 
@@ -89,7 +90,8 @@ coding-agent-playbook/
 │   └── rethinking-code-review-in-the-ai-era.md
 ├── prompts/
 │   ├── claude-code-harness-audit.md
-│   └── security-privacy-data-performance-review.md
+│   ├── security-privacy-data-performance-review.md
+│   └── session-name-setup.md
 ├── skills/
 │   └── frontend-testing/
 │       └── SKILL.md
