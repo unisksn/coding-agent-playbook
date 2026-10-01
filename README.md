@@ -23,7 +23,6 @@ Reusable prompts for auditing, designing, and improving coding-agent workflows.
 | Resource                                                            | Description                                                                                                              |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | [Claude Code Harness Audit](./prompts/claude-code-harness-audit.md) | Audit and improve a personal Claude Code harness for use across multiple repositories, languages, and technology stacks. |
-| [Security, Privacy, Data Integrity, and Performance Review](./prompts/security-privacy-data-performance-review.md) | Review a change for security, privacy, data integrity, and performance before releasing it to production. Written in Japanese. |
 
 ### Slides
 
@@ -39,6 +38,7 @@ Reusable [Agent Skills](https://agentskills.io/) that coding agents load on dema
 
 | Resource                                                | Description                                                                                                                                                                                        |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Code Review Strict](./skills/code-review-strict/SKILL.md) | Review a change for security, privacy, data integrity, and performance before releasing it to production. Invoked as `/code-review-strict [PR number \| branch \| revision range \| path]`. Written in Japanese. |
 | [Frontend Testing](./skills/frontend-testing/SKILL.md) | Decide which layer (unit, component, E2E) a frontend test belongs to, and avoid duplication, excessive mocking, and brittle selectors. Written in Japanese. |
 
 To use a skill, symlink or copy its directory into the skills location of your agent:
@@ -91,6 +91,8 @@ coding-agent-playbook/
 │   ├── claude-code-harness-audit.md
 │   └── security-privacy-data-performance-review.md
 ├── skills/
+│   ├── code-review-strict/
+│   │   └── SKILL.md
 │   └── frontend-testing/
 │       └── SKILL.md
 └── slides/
